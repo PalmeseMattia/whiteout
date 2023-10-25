@@ -1,118 +1,178 @@
-import Image from 'next/image'
+import Slider from '@/components/Slider'
 import { Inter } from 'next/font/google'
+import { useEffect, useRef, useState } from 'react'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
+
+  const [bassGain, setBassGain] = useState(0);
+  const [midBassGain, setMidBassGain] = useState(0);
+  const [highBassGain, setHighBassGain] = useState(0);
+  const [lowerMidGain, setLowerMidGain] = useState(0);
+  const [midGain, setMidGain] = useState(0);
+  const [trebbleGain, setTrebbleGain] = useState(0);
+
+
+  const [dataPlaying, setDataPlaying] = useState(false);
+  const audioContext = useRef();
+
+  const bassGainNode = useRef();
+  const midBassGainNode = useRef();
+  const highBassGainNode = useRef();
+  const lowerMidGainNode = useRef();
+  const midGainNode = useRef();
+  const trebbleGainNode = useRef();
+
+  const bassOscillatorNode = useRef();    
+  const midBassOscillatorNode = useRef();
+  const highBassOscillatorNode = useRef();
+  const lowerMidOscillatorNode = useRef();
+  const midOscillatorNode = useRef();       
+  const trebbleOscillatorNode = useRef();
+
+  
+  useEffect(() => {
+    //Create audio context 
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    audioContext.current = new AudioContext();
+
+    //Create gain node
+    bassGainNode.current = audioContext.current.createGain();
+    bassGainNode.current.connect(audioContext.current.destination);
+    bassGainNode.current.gain.value = bassGain;
+
+    midBassGainNode.current = audioContext.current.createGain();
+    midBassGainNode.current.connect(audioContext.current.destination);
+    midBassGainNode.current.gain.value = midBassGain;
+
+    highBassGainNode.current = audioContext.current.createGain();
+    highBassGainNode.current.connect(audioContext.current.destination);
+    highBassGainNode.current.gain.value = highBassGain;
+
+    lowerMidGainNode.current = audioContext.current.createGain();
+    lowerMidGainNode.current.connect(audioContext.current.destination);
+    lowerMidGainNode.current.gain.value = lowerMidGain;
+
+    midGainNode.current = audioContext.current.createGain();
+    midGainNode.current.connect(audioContext.current.destination);
+    midGainNode.current.gain.value = midBassGain;
+
+    trebbleGainNode.current = audioContext.current.createGain();
+    trebbleGainNode.current.connect(audioContext.current.destination);
+    trebbleGainNode.current.gain.value = highBassGain;
+    
+    //Create oscillator node
+    bassOscillatorNode.current = audioContext.current.createOscillator();
+    bassOscillatorNode.current.type = 'sine';
+    bassOscillatorNode.current.frequency.value = 60;
+    bassOscillatorNode.current.connect(bassGainNode.current);
+    bassOscillatorNode.current.start();
+
+    midBassOscillatorNode.current = audioContext.current.createOscillator();
+    midBassOscillatorNode.current.type = 'sine';
+    midBassOscillatorNode.current.frequency.value = 175;
+    midBassOscillatorNode.current.connect(midBassGainNode.current);
+    midBassOscillatorNode.current.start();
+
+    highBassOscillatorNode.current = audioContext.current.createOscillator();
+    highBassOscillatorNode.current.type = 'sine';
+    highBassOscillatorNode.current.frequency.value = 250;
+    highBassOscillatorNode.current.connect(highBassGainNode.current);
+    highBassOscillatorNode.current.start();
+
+    lowerMidOscillatorNode.current = audioContext.current.createOscillator();
+    lowerMidOscillatorNode.current.type = 'sine';
+    lowerMidOscillatorNode.current.frequency.value = 440;
+    lowerMidOscillatorNode.current.connect(lowerMidGainNode.current);
+    lowerMidOscillatorNode.current.start();
+
+    midOscillatorNode.current = audioContext.current.createOscillator();
+    midOscillatorNode.current.type = 'sine';
+    midOscillatorNode.current.frequency.value = 1250;
+    midOscillatorNode.current.connect(midGainNode.current);
+    midOscillatorNode.current.start();
+
+    trebbleOscillatorNode.current = audioContext.current.createOscillator();
+    trebbleOscillatorNode.current.type = 'sine';
+    trebbleOscillatorNode.current.frequency.value = 2000;
+    trebbleOscillatorNode.current.connect(trebbleGainNode.current);
+    trebbleOscillatorNode.current.start();
+
+  }, []);
+
+  const toggleOscillator = () => {
+    if (dataPlaying) {
+      audioContext.current.suspend();
+    } else {
+      audioContext.current.resume();
+    }
+    setDataPlaying((play) => !play);
+  };
+
+  const changeGain = (g, setter, gainNode) => {
+      gainNode.current.gain.value = g;
+      setter(g);
+  }
+
+  // TODO: this functions works only after we change the gain value, so everytime we
+  // force a rerender
+  const getHz = (oscillator) => {
+    return oscillator.current ? oscillator.current.frequency.value : "Undefined"
+  };
+
+
   return (
     <main
-      className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
-    >
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">pages/index.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Discover and deploy boilerplate example Next.js&nbsp;projects.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+      className="flex flex-col h-screen text-white bg-black items-center justify-center font-mono">
+          <div className='flex lg:flex-row flex-col'>
+          <Slider subtext="Bass(60Hz)" 
+            value={bassGain} 
+            changeGain={changeGain} 
+            setter={setBassGain} 
+            gainNode={bassGainNode} 
+            bgcolor="[&::-webkit-slider-thumb]:bg-[#8A307F]"/>
+          <Slider 
+            subtext="Mid Bass(175Hz)" 
+            value={midBassGain} 
+            changeGain={changeGain} 
+            setter={setMidBassGain} 
+            gainNode={midBassGainNode}
+            bgcolor="[&::-webkit-slider-thumb]:bg-[#5F57AC]"/>
+          <Slider 
+            subtext="High bass(250hz)" 
+            value={highBassGain} 
+            changeGain={changeGain} 
+            setter={setHighBassGain}
+            gainNode={highBassGainNode}
+            bgcolor="[&::-webkit-slider-thumb]:bg-[#0076C1]"/>
+          <Slider 
+            subtext={`Lower Mid(440hz)`}
+            value={lowerMidGain} 
+            changeGain={changeGain} 
+            setter={setLowerMidGain} 
+            gainNode={lowerMidGainNode}
+            bgcolor="[&::-webkit-slider-thumb]:bg-[#008DBE]"/>
+          <Slider 
+            subtext="Mid(1250Hz)" 
+            value={midGain} 
+            changeGain={changeGain} 
+            setter={setMidGain}
+            gainNode={midGainNode}
+            bgcolor="[&::-webkit-slider-thumb]:bg-[#009FA9]"/>
+          <Slider 
+            subtext="Trebble(2000hz)" 
+            value={trebbleGain} 
+            changeGain={changeGain} 
+            setter={setTrebbleGain}
+            gainNode={trebbleGainNode}
+            bgcolor="[&::-webkit-slider-thumb]:bg-[#3BAD8F]"/>
+          </div>
+        <button 
+          onClick={() => toggleOscillator()}
+          className="appearance-none mt-10 border-solid border-white border-2 p-2 ">
+          {dataPlaying ? "Stop" : "Play"}
+        </button>
     </main>
   )
 }
