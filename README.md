@@ -1,4 +1,4 @@
-# Chronos
+# Whiteout
 
 Chronos is an open source, web based, white noise generator. It uses [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API) to ensure compatibility with most browsers.
 
